@@ -1,10 +1,21 @@
+# Ruff linter configuration
 [tool.ruff.lint]
-select = ["F", "ARG"]
+# Enable only specific rule sets
+select = [
+    "F",   # pyflakes
+    "ARG", # flake8-unused-arguments
+]
+# Exclude specific files from linting
+exclude = [
+    "_nbdev.py",
+]
 
-exclude = ["_nbdev.py"]
-
+# MyPy type checker configuration
 [tool.mypy]
+# Ignore missing type stubs in imported modules
 ignore_missing_imports = true
+
+# Module-specific MyPy configurations
 [[tool.mypy.overrides]]
-module = 'mlforecast.compat'
+module = "mlforecast.compat"
 ignore_errors = true
