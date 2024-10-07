@@ -1,31 +1,79 @@
 #!/usr/bin/env python3
+
 import re
 import json
 from pathlib import Path
+from typing import Dict, Any
 from nbdev.clean import process_write
 
-IP_REGEX = re.compile(r'[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}')
-HOURS_REGEX = re.compile(r'\d{2}:\d{2}:\d{2}')
+# Constants
+IP_REGEX = re.compile(r'\b(?:\d{1,3}\.){3}\d{1,3}\b')
+HOURS_REGEX = re.compile(r'\b\d{2}:\d{2}:\d{2}\b')
+LIGHTGBM_MARKER = '[LightGBM]'
 
-def cell_contains_ips(cell):
+def cell_contains_sensitive_info(cell: Dict[str, Any]) -> bool:
+    """
+    Check if a cell contains sensitive information like IPs, timestamps, or LightGBM output.
+
+    Args:
+        cell (Dict[str, Any]): A Jupyter notebook cell.
+
+    Returns:
+        bool: True if sensitive information is found, False otherwise.
+    """
     if 'outputs' not in cell:
         return False
-    for output in cell['outputs']:
+
+    for output in cell.get('outputs', []):
         if 'text' not in output:
-            return False
-        for line in output['text']:
-            if IP_REGEX.search(line) or HOURS_REGEX.search(line) or '[LightGBM]' in line:
+            continue
+        for line in output.get('text', []):
+            if any(pattern.search(line) for pattern in [IP_REGEX, HOURS_REGEX]) or LIGHTGBM_MARKER in line:
                 return True
     return False
 
+def clean_notebook(notebook: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Remove outputs from cells containing sensitive information.
 
-def clean_nb(nb):
-    for cell in nb['cells']:
-        if cell_contains_ips(cell):
+    Args:
+        notebook (Dict[str, Any]): A Jupyter notebook.
+
+    Returns:
+        Dict[str, Any]: The cleaned notebook.
+    """
+    for cell in notebook.get('cells', []):
+        if cell_contains_sensitive_info(cell):
             cell['outputs'] = []
+    return notebook
 
+def process_notebooks(repo_root: Path, pattern: str = '*distributed*.ipynb'):
+    """
+    Process and clean notebooks matching the given pattern in the repository.
+
+    Args:
+        repo_root (Path): The root directory of the repository.
+        pattern (str): The glob pattern to match notebook files.
+    """
+    notebooks_dir = repo_root / 'nbs'
+    if not notebooks_dir.exists():
+        print(f"Error: Notebooks directory not found at {notebooks_dir}")
+        return
+
+    for notebook_path in notebooks_dir.rglob(pattern):
+        try:
+            process_write(
+                warn_msg=f'Failed to clean notebook: {notebook_path}',
+                proc_nb=clean_notebook,
+                f_in=notebook_path
+            )
+            print(f"Successfully cleaned notebook: {notebook_path}")
+        except Exception as e:
+            print(f"Error processing {notebook_path}: {str(e)}")
 
 if __name__ == '__main__':
-    repo_root = Path(__file__).parents[1]
-    for nb in (repo_root / 'nbs').rglob('*distributed*.ipynb'):
-        process_write(warn_msg='Failed to clean_nb', proc_nb=clean_nb, f_in=nb)
+    try:
+        repo_root = Path(__file__).parents[1]
+        process_notebooks(repo_root)
+    except Exception as e:
+        print(f"An error occurred: {str(e)}")
