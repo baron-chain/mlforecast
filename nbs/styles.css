@@ -1,3 +1,4 @@
+/* Cell Styling */
 .cell {
   margin-bottom: 1rem;
 }
@@ -6,47 +7,42 @@
   margin-bottom: 0;
 }
 
-.cell-output > pre {
-  margin-bottom: 0;
-}
-
-.cell-output > pre, .cell-output > .sourceCode > pre, .cell-output-stdout > pre {
-  margin-left: 0.8rem;
-  margin-top: 0;
+/* Cell Output Styling */
+.cell-output > pre,
+.cell-output > .sourceCode > pre,
+.cell-output-stdout > pre {
+  margin: 0 0 0 0.8rem;
   background: none;
   border-left: 2px solid lightsalmon;
-  border-top-left-radius: 0;
-  border-top-right-radius: 0;
+  border-radius: 0 0 0 0;
 }
 
 .cell-output > .sourceCode {
   border: none;
-}
-
-.cell-output > .sourceCode {
   background: none;
   margin-top: 0;
 }
 
-div.description {
-  padding-left: 2px;
-  padding-top: 5px;
+/* Description Styling */
+.description {
+  padding: 5px 0 0 2px;
   font-style: italic;
-  font-size: 135%;
-  opacity: 70%;
+  font-size: 1.35em;
+  opacity: 0.7;
 }
 
-/* show_doc signature */
+/* Documentation Signature Styling */
 blockquote > pre {
-  font-size: 14px;
+  font-size: 0.875rem; /* 14px */
 }
 
+/* Table Styling */
 .table {
-  font-size: 16px;
-  /* disable striped tables */
+  font-size: 1rem; /* 16px */
   --bs-table-striped-bg: var(--bs-table-bg);
 }
 
+/* Figure and Caption Styling */
 .quarto-figure-center > figure > figcaption {
   text-align: center;
 }
